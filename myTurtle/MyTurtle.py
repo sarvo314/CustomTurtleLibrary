@@ -2,20 +2,21 @@ import math
 import time
 from threading import Thread
 import tkinter as tk
-WIDTH = 1280
-HEIGHT = 720
+WIDTH = 2560
+HEIGHT = 1600
 
-#delays of 0.001 seconds
-SPEED = 0.1
 class MyTurtle():
     def __init__(self):
         self.window = tk.Tk("MyTurtle")
         #   initialize initial coordinates as (0, 0)
         self.x = WIDTH/2
         self.y = HEIGHT/2
+        #speed of turtle
+        self.speed = 0.1
         #   direction in which the cursor is facing, represented by a vector
         #   initially facing right
         self.dir = [1, 0]
+        self.theta  = 0
         #   initial line color is black
         self.line_color = f"#{0:02X}{0:02X}{0:02X}"
         self.line_width = 3
@@ -58,11 +59,12 @@ class MyTurtle():
         curr_x = self.x
         curr_y = self.y
         while(self.current_distance < distance_to_draw):
-            final_x, final_y = self.find_final(curr_x, curr_y, SPEED) 
-            self.canvas.create_line(curr_x, curr_y, final_x, final_y, fill=self.line_color, width=self.line_width) 
+            final_x, final_y = self.find_final(curr_x, curr_y, self.speed) 
+            if(self.canvas):
+                self.canvas.create_line(curr_x, curr_y, final_x, final_y, fill=self.line_color, width=self.line_width) 
             curr_x = final_x
             curr_y = final_y
-            self.current_distance += SPEED
+            self.current_distance += self.speed 
             self.canvas.update()
     def Forward(self, distance):
         #   check if pen is down
@@ -85,11 +87,29 @@ class MyTurtle():
 
     def Backward(self, distance):
         if(self.pen_down):
-            self.Draw(self, distance)
+            self.Draw(distance)
         self.x, self.y = self.find_final(self.x, self.y, distance)
 
     def PenDown(self, isDown):
         self.pen_down = isDown
+
+
+    def calculate_distance(self, x1, y1, x2, y2):
+        dx = x2 - x1
+        dy = y2 - y1
+
+        squared_distance = dx**2 + dy**2
+
+        distance = math.sqrt(squared_distance)
+
+        return distance
+
+    def GoTo(self, x, y):
+        if(self.pen_down):
+            distance = self.calculate_distance(self.x, self.y, x, y)
+            self.Draw(distance)
+        self.x = x
+        self.y = y
 
     def LineColor(self, r, g, b):
         red = int(r * 255)
@@ -98,9 +118,25 @@ class MyTurtle():
         line_color = f"#{red:02X}{green:02X}{blue:02X}"
         self.line_color = line_color 
 
+    def LineWidth(self, width):
+        self.line_width = width
+    def Speed(self, speed):
+        self.speed = speed
+
+    def ResetPosition(self):
+        self.x = 0
+        self.y = 0
+        self.theta = 0
+        self.dir = [0,0]
     def __degrees_to_radians__(self, degrees):
         return degrees * (math.pi / 180)
+    def GetWidth(self):
+        return WIDTH
+    def GetHeight(self):
+        return HEIGHT
 
+    def ClearScreen(self):
+        self.canvas.delete("all")
     #   destructor
     def mainloop(self):
         self.window.mainloop()
